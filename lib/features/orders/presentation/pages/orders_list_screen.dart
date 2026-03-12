@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/order_card.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/order.dart';
 import '../bloc/order_bloc.dart';
 
@@ -25,21 +25,24 @@ class OrdersListScreen extends StatelessWidget {
         return DefaultTabController(
           length: 2,
           child: Scaffold(
-            backgroundColor: AppColors.white,
+            backgroundColor: AppColors.background,
             appBar: AppBar(
               title: Text('Mes Commandes', style: AppTextStyles.heading2),
               centerTitle: true,
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.background,
               elevation: 0,
+              foregroundColor: AppColors.textPrimary,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.black),
+                icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () => context.go('/home'),
               ),
-              bottom: const TabBar(
-                labelColor: AppColors.black,
-                unselectedLabelColor: AppColors.darkGray,
-                indicatorColor: AppColors.black,
-                tabs: [
+              bottom: TabBar(
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.textSecondary,
+                indicatorColor: AppColors.primary,
+                indicatorWeight: 3,
+                labelStyle: AppTextStyles.label,
+                tabs: const [
                   Tab(text: 'En cours'),
                   Tab(text: 'Historique'),
                 ],
@@ -55,44 +58,58 @@ class OrdersListScreen extends StatelessWidget {
   Widget _body(BuildContext context, OrderState state) {
     if (state.listStatus == OrderListStatus.loading) {
       return const Center(
-          child: CircularProgressIndicator(color: AppColors.black));
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
     if (state.listStatus == OrderListStatus.failure) {
-      return Center(child: Text('Erreur: ${state.listError}'));
+      return EmptyState.error(
+        message: state.listError ?? 'Erreur de chargement',
+        onRetry: () => context.read<OrderBloc>().add(const OrderListRequested()),
+      );
     }
     return TabBarView(
       children: [
-        _OrderListView(orders: state.activeOrders),
-        _OrderListView(orders: state.historyOrders),
+        _OrderListView(
+          orders: state.activeOrders,
+          onRefresh: () => context.read<OrderBloc>().add(const OrderListRequested()),
+        ),
+        _OrderListView(
+          orders: state.historyOrders,
+          onRefresh: () => context.read<OrderBloc>().add(const OrderListRequested()),
+        ),
       ],
     );
   }
 }
 
 class _OrderListView extends StatelessWidget {
-  const _OrderListView({required this.orders});
+  const _OrderListView({
+    required this.orders,
+    required this.onRefresh,
+  });
   final List<Order> orders;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
     if (orders.isEmpty) {
-      return Center(
-        child: Text(
-          'Aucune commande',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.darkGray),
-        ),
-      );
+      return EmptyState.orders(onBrowse: () => context.go('/home'));
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: orders.length,
-      itemBuilder: (context, index) {
-        final order = orders[index];
-        return OrderCard(
-          order: order,
-          onTap: () => context.push('/order/${order.id}'),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: () async => onRefresh(),
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          final order = orders[index];
+          return OrderCard(
+            order: order,
+            onTap: () => context.push('/order/${order.id}'),
+          );
+        },
+      ),
     );
   }
 }

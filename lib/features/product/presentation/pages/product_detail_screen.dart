@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../review/presentation/widgets/star_rating_widget.dart';
@@ -28,6 +29,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   int _quantity = 1;
   final Map<String, String> _selectedVariants = {};
   bool _isAddingToCart = false;
+  bool _descriptionExpanded = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -318,10 +320,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       children: [
                         Text(
                           '${currencyFormat.format(_product.price)} BIF',
-                          style: const TextStyle(
+                          style: AppTextStyles.price.copyWith(
                             fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.accent,
+                            color: AppColors.primary,
                           ),
                         ),
                         if (_product.hasDiscount) ...[
@@ -477,22 +478,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     ),
                     const SizedBox(height: 28),
 
-                    // Description
-                    const Text(
+                    // Description (expandable)
+                    Text(
                       'Description',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTextStyles.heading5,
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      _product.description ?? '',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        height: 1.6,
-                      ),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final description = _product.description ?? '';
+                        const maxLinesCollapsed = 3;
+                        final needExpand = description.length > 120 || description.split('\n').length > maxLinesCollapsed;
+                        final showFull = _descriptionExpanded || !needExpand;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              description,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                                height: 1.6,
+                              ),
+                              maxLines: showFull ? null : maxLinesCollapsed,
+                              overflow: showFull ? null : TextOverflow.ellipsis,
+                            ),
+                            if (needExpand)
+                              GestureDetector(
+                                onTap: () => setState(() => _descriptionExpanded = !_descriptionExpanded),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    _descriptionExpanded ? 'Voir moins' : 'Voir plus',
+                                    style: AppTextStyles.link,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 120), // Space for bottom bar
                   ],
@@ -548,11 +571,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               const SizedBox(width: 16),
               // Add to Cart Button
               Expanded(
-                child: AppButton(
-                  label: 'Ajouter',
-                  onPressed: _isAddingToCart ? null : _addToCart,
+                flex: 2,
+                child: CustomButton(
+                  text: 'Ajouter au panier',
+                  backgroundColor: AppColors.primary,
                   isLoading: _isAddingToCart,
-                  icon: Icons.shopping_cart,
+                  onPressed: _isAddingToCart ? null : _addToCart,
+                  icon: Icons.shopping_cart_rounded,
                 ),
               ),
             ],

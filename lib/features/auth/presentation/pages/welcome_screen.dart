@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../bloc/auth_bloc.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -173,39 +175,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                       const Spacer(flex: 1),
 
-                      // Buttons
+                      // Buttons — "Se Connecter" primary first, "Créer un compte" outlined
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: SlideTransition(
                           position: _slideAnimation,
                           child: Column(
                             children: [
-                              // Login button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: OutlinedButton(
-                                  onPressed: () => context.push('/login'),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                      color: AppColors.borderLight,
-                                      width: 1.5,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Se connecter',
-                                    style: AppTextStyles.button.copyWith(
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Register button
+                              // Se Connecter (primary red, full-width)
                               SizedBox(
                                 width: double.infinity,
                                 height: 56,
@@ -223,7 +200,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                     ],
                                   ),
                                   child: ElevatedButton(
-                                    onPressed: () => context.push('/register'),
+                                    onPressed: () {
+                                      context.read<AuthBloc>().add(
+                                            const AuthSkipLoginRequested(),
+                                          );
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       shadowColor: Colors.transparent,
@@ -232,10 +213,35 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ),
                                     ),
                                     child: Text(
-                                      'Créer un compte',
+                                      'Se connecter',
                                       style: AppTextStyles.button.copyWith(
                                         color: AppColors.white,
                                       ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Créer un compte (outlined red, full-width)
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: OutlinedButton(
+                                  onPressed: () => context.push('/register'),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(
+                                      color: AppColors.primary,
+                                      width: 1.5,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Créer un compte',
+                                    style: AppTextStyles.button.copyWith(
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),

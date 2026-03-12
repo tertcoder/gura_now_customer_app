@@ -42,6 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
+    _passwordController.addListener(() => setState(() {}));
   }
 
   @override
@@ -215,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           ),
                           const SizedBox(height: 20),
 
-                          // Password
+                          // Password with strength indicator
                           _InputField(
                             controller: _passwordController,
                             label: 'Mot de passe',
@@ -237,6 +238,10 @@ class _RegisterScreenState extends State<RegisterScreen>
                               },
                             ),
                             validator: Validators.validatePassword,
+                          ),
+                          const SizedBox(height: 8),
+                          _PasswordStrengthBar(
+                            password: _passwordController.text,
                           ),
                           const SizedBox(height: 20),
 
@@ -547,6 +552,54 @@ class _InputField extends StatelessWidget {
               borderSide: const BorderSide(color: AppColors.danger, width: 2),
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Password strength indicator: red -> orange -> green bar
+class _PasswordStrengthBar extends StatelessWidget {
+  const _PasswordStrengthBar({required this.password});
+
+  final String password;
+
+  @override
+  Widget build(BuildContext context) {
+    final strength = Validators.getPasswordStrength(password);
+    Color barColor = AppColors.danger;
+    if (strength >= 60) {
+      barColor = AppColors.success;
+    } else if (strength >= 30) {
+      barColor = AppColors.guraOrange;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: strength / 100,
+                  minHeight: 6,
+                  backgroundColor: AppColors.surfaceContainer,
+                  valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                ),
+              ),
+            ),
+            if (password.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Text(
+                Validators.getPasswordStrengthLabel(password),
+                style: AppTextStyles.caption.copyWith(
+                  color: barColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );

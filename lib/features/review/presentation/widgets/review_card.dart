@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import 'star_rating_widget.dart';
 
 /// Card widget for displaying a single review.
@@ -21,56 +23,53 @@ class ReviewCard extends StatelessWidget {
   final DateTime createdAt;
   final bool isVisible;
 
+  static String _initials(String name) {
+    if (name.isEmpty) return '?';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    return name.length >= 2 ? name.substring(0, 2).toUpperCase() : name[0].toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-            ),
-          ],
+          border: Border.all(color: AppColors.borderGray),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
-                // Avatar
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.grey[200],
-                  backgroundImage: reviewerImage != null
+                  backgroundColor: AppColors.surfaceContainer,
+                  backgroundImage: reviewerImage != null && reviewerImage!.isNotEmpty
                       ? NetworkImage(reviewerImage!)
                       : null,
-                  child: reviewerImage == null
+                  child: reviewerImage == null || reviewerImage!.isEmpty
                       ? Text(
-                          reviewerName.isNotEmpty
-                              ? reviewerName[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                          _initials(reviewerName),
+                          style: AppTextStyles.label.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
                           ),
                         )
                       : null,
                 ),
                 const SizedBox(width: 12),
-                // Name and Rating
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         reviewerName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTextStyles.heading5,
                       ),
                       const SizedBox(height: 2),
                       StarRatingDisplay(
@@ -81,48 +80,39 @@ class ReviewCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Date
                 Text(
                   _formatDate(createdAt),
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 12,
-                  ),
+                  style: AppTextStyles.caption,
                 ),
               ],
             ),
-            // Comment
             if (comment != null && comment!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
                 comment!,
-                style: TextStyle(
-                  color: Colors.grey[700],
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
                   height: 1.4,
                 ),
               ),
             ],
-            // Hidden indicator
             if (!isVisible) ...[
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(4),
+                  color: AppColors.danger.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.visibility_off,
-                        size: 14, color: Colors.red[400]),
+                    Icon(Icons.visibility_off_rounded, size: 14, color: AppColors.danger),
                     const SizedBox(width: 4),
                     Text(
                       'Avis masqué',
-                      style: TextStyle(
-                        color: Colors.red[400],
-                        fontSize: 12,
-                      ),
+                      style: AppTextStyles.caption.copyWith(color: AppColors.danger),
                     ),
                   ],
                 ),
@@ -135,20 +125,14 @@ class ReviewCard extends StatelessWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'Aujourd\'hui';
-    } else if (difference.inDays == 1) {
-      return 'Hier';
-    } else if (difference.inDays < 7) {
-      return 'Il y a ${difference.inDays} jours';
-    } else {
-      return DateFormat('dd MMM yyyy', 'fr_FR').format(date);
-    }
+    if (difference.inDays == 0) return 'Aujourd\'hui';
+    if (difference.inDays == 1) return 'Hier';
+    if (difference.inDays < 7) return 'Il y a ${difference.inDays} jours';
+    return DateFormat('dd MMM yyyy', 'fr_FR').format(date);
   }
 }
 
-/// Widget to display review statistics.
+/// Widget to display review statistics (dark theme).
 class ReviewStatsWidget extends StatelessWidget {
   const ReviewStatsWidget({
     super.key,
@@ -164,26 +148,17 @@ class ReviewStatsWidget extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-            ),
-          ],
+          border: Border.all(color: AppColors.borderGray),
         ),
         child: Row(
           children: [
-            // Average Rating
             Column(
               children: [
                 Text(
                   averageRating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.statLarge.copyWith(color: AppColors.primary),
                 ),
                 StarRatingDisplay(
                   rating: averageRating,
@@ -192,42 +167,32 @@ class ReviewStatsWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '$totalReviews avis',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
+                  style: AppTextStyles.caption,
                 ),
               ],
             ),
             const SizedBox(width: 24),
-            // Distribution Bars
             Expanded(
               child: Column(
                 children: List.generate(5, (index) {
                   final starCount = 5 - index;
                   final count = distribution[starCount] ?? 0;
-                  final percentage =
-                      totalReviews > 0 ? count / totalReviews : 0.0;
-
+                  final percentage = totalReviews > 0 ? count / totalReviews : 0.0;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
                     child: Row(
                       children: [
-                        Text(
-                          '$starCount',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        const Icon(Icons.star, size: 12, color: Colors.amber),
+                        Text('$starCount', style: AppTextStyles.caption),
+                        const SizedBox(width: 4),
+                        Icon(Icons.star_rounded, size: 12, color: AppColors.primary),
                         const SizedBox(width: 8),
                         Expanded(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: percentage,
-                              backgroundColor: Colors.grey[200],
-                              valueColor: const AlwaysStoppedAnimation(
-                                Colors.amber,
-                              ),
+                              backgroundColor: AppColors.surfaceContainer,
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                               minHeight: 8,
                             ),
                           ),
@@ -237,10 +202,8 @@ class ReviewStatsWidget extends StatelessWidget {
                           width: 24,
                           child: Text(
                             '$count',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
+                            style: AppTextStyles.caption,
+                            textAlign: TextAlign.end,
                           ),
                         ),
                       ],

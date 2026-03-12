@@ -5,7 +5,6 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/mock/mock_auth_datasource.dart';
 import '../../../../core/mock/mock_config.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -97,19 +96,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 }
 
-/// Provider for AuthRepository
+/// Provider for AuthRepository (mock only - API not used in this app).
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
-
-  // Use mock or real data source based on configuration
-  late final AuthRemoteDataSource remoteDataSource;
-  if (useMockData) {
-    logMockOperation('Using MockAuthRemoteDataSource');
-    remoteDataSource = MockAuthRemoteDataSource();
-  } else {
-    final apiClient = ref.watch(apiClientProvider);
-    remoteDataSource = AuthRemoteDataSourceImpl(apiClient);
-  }
-
-  return AuthRepositoryImpl(remoteDataSource, secureStorage);
+  logMockOperation('Using MockAuthRemoteDataSource');
+  return AuthRepositoryImpl(MockAuthRemoteDataSource(), secureStorage);
 });

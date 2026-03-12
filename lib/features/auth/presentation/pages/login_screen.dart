@@ -6,6 +6,7 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  String? _fullPhoneNumber; // E.164 from InternationalPhoneField
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -61,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      final phone =
+      final phone = _fullPhoneNumber ??
           Validators.normalizePhoneNumber(_phoneController.text.trim());
       final password = _passwordController.text;
       context.read<AuthBloc>().add(AuthLoginRequested(
@@ -150,13 +152,15 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 48),
 
-                            // Phone field
-                            _InputField(
+                            // Phone field (Burundi +257)
+                            InternationalPhoneField(
                               controller: _phoneController,
+                              initialCountryCode: 'BI',
                               label: 'Numéro de téléphone',
                               hint: '+257 79 XXX XXX',
-                              prefixIcon: Icons.phone_outlined,
-                              keyboardType: TextInputType.phone,
+                              onChanged: (completeNumber) {
+                                setState(() => _fullPhoneNumber = completeNumber);
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Veuillez entrer votre numéro';

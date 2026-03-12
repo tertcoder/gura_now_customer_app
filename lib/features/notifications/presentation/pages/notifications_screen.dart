@@ -34,13 +34,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           backgroundColor: AppColors.background,
           appBar: AppBar(
             title: const Text('Notifications'),
+            backgroundColor: AppColors.background,
+            foregroundColor: AppColors.textPrimary,
+            elevation: 0,
             actions: [
               if (unreadCount > 0)
                 TextButton(
                   onPressed: () {
                     context.read<NotificationBloc>().add(const NotificationsMarkAllReadRequested());
                   },
-                  child: const Text('Tout marquer lu'),
+                  child: const Text('Tout lire'),
                 ),
             ],
           ),
@@ -153,9 +156,15 @@ class _NotificationTile extends StatelessWidget {
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: notification.isRead
-              ? Colors.transparent
-              : AppColors.accent.withValues(alpha: 0.05),
+          decoration: BoxDecoration(
+            color: notification.isRead ? AppColors.background : AppColors.surfaceLight,
+            border: Border(
+              left: BorderSide(
+                color: notification.isRead ? Colors.transparent : AppColors.primary,
+                width: 3,
+              ),
+            ),
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

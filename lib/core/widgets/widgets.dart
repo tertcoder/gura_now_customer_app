@@ -17,6 +17,7 @@ export 'shop_card.dart';
 export 'loading_widget.dart';
 export 'product_card.dart';
 export 'empty_state_widget.dart';
+export 'notification_badge.dart';
 
 // Dialogs
 export '../dialogs/confirm_dialog.dart';

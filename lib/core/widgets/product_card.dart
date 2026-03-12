@@ -19,48 +19,50 @@ class ProductCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.lightGray),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderGray),
           ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: AppColors.lightGray,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(7)),
-                  ),
-                  child: product.imageUrl != null
-                      ? Image.network(product.imageUrl!, fit: BoxFit.cover)
+                  color: AppColors.surfaceContainer,
+                  child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          product.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.shopping_bag_outlined,
+                            color: AppColors.textTertiary,
+                            size: 40,
+                          ),
+                        )
                       : const Icon(
                           Icons.shopping_bag_outlined,
-                          color: AppColors.mediumGray,
+                          color: AppColors.textTertiary,
+                          size: 40,
                         ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       product.name,
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(fontWeight: FontWeight.bold),
+                      style: AppTextStyles.heading5,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${product.price.toStringAsFixed(0)} Fbu',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      '${product.price.toStringAsFixed(0)} BIF',
+                      style: AppTextStyles.priceSmall.copyWith(color: AppColors.primary),
                     ),
                   ],
                 ),

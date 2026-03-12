@@ -26,6 +26,11 @@ class AuthLoginRequested extends AuthEvent {
   List<Object?> get props => [phoneNumber, password];
 }
 
+/// Skip login and enter app as mock user (no validation).
+class AuthSkipLoginRequested extends AuthEvent {
+  const AuthSkipLoginRequested();
+}
+
 /// User requested registration.
 class AuthRegisterRequested extends AuthEvent {
   const AuthRegisterRequested({

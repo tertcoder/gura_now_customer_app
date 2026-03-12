@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/mock/mock_data.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/user.dart';
@@ -27,6 +28,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         super(const AuthState()) {
     on<AuthCheckRequested>(_onCheckRequested);
     on<AuthLoginRequested>(_onLoginRequested);
+    on<AuthSkipLoginRequested>(_onSkipLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthSetUnauthenticatedRequested>(_onSetUnauthenticatedRequested);
@@ -83,6 +85,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             user: user,
           )),
     );
+  }
+
+  Future<void> _onSkipLoginRequested(
+    AuthSkipLoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading, clearError: true));
+    final user = MockData.getUserById('user-1');
+    if (user == null) {
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: 'Mock user not found',
+      ));
+      return;
+    }
+    final token = MockData.generateMockToken();
+    MockData.login(user.id, user.role, token);
+    await _storage.saveToken(token);
+    await _storage.saveUser(user);
+    emit(state.copyWith(
+      status: AuthStatus.authenticated,
+      user: user.toEntity(),
+    ));
   }
 
   Future<void> _onRegisterRequested(

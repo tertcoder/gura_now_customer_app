@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-
 import '../../features/auth/presentation/pages/forgot_password_screen.dart';
 import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/auth/presentation/pages/onboarding_screen.dart';
@@ -19,7 +18,10 @@ import '../../features/orders/presentation/pages/checkout_screen.dart';
 import '../../features/orders/presentation/pages/order_detail_screen.dart';
 import '../../features/orders/presentation/pages/order_success_screen.dart';
 import '../../features/orders/presentation/pages/orders_list_screen.dart';
-import '../../features/placeholders.dart';
+import '../../features/notifications/presentation/pages/notifications_screen.dart';
+import '../../features/placeholders.dart'; // DriverDeliveriesScreen, OwnerDashboardScreen
+import '../../features/profile/profile.dart';
+import '../../features/product/presentation/pages/product_detail_screen.dart';
 import '../../features/shop/domain/entities/shop.dart';
 import '../../features/shop/presentation/pages/shop_detail_screen.dart';
 import '../layouts/main_scaffold.dart';
@@ -123,6 +125,9 @@ GoRouter createAppRouterWithBloc(BuildContext context) {
               path: '/profile',
               builder: (context, state) => const ProfileScreen()),
           GoRoute(
+              path: '/dashboard',
+              builder: (context, state) => const OwnerDashboardScreen()),
+          GoRoute(
               path: '/driver-deliveries',
               builder: (context, state) => const DriverDeliveriesScreen()),
           GoRoute(
@@ -169,6 +174,18 @@ GoRouter createAppRouterWithBloc(BuildContext context) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/addresses',
+        builder: (context, state) => const AddressesScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );

@@ -34,33 +34,34 @@ class InternationalPhoneField extends StatelessWidget {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: AppTextStyles.label,
-          hintText: hint,
+          labelStyle: AppTextStyles.label.copyWith(color: AppColors.textSecondary),
+          hintText: hint ?? '+257 79 123 456',
+          hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textDisabled),
           filled: true,
-          fillColor: AppColors.lightGray,
+          fillColor: AppColors.surfaceContainer,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.borderGray),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.borderGray),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: AppColors.black, width: 2),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.danger),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.danger, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
+            horizontal: 20,
+            vertical: 18,
           ),
         ),
         initialCountryCode: initialCountryCode,
@@ -81,8 +82,9 @@ class InternationalPhoneField extends StatelessWidget {
 
           return null;
         },
-        dropdownTextStyle: AppTextStyles.bodyMedium,
-        style: AppTextStyles.bodyMedium,
+        dropdownTextStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+        dropdownIcon: const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
         flagsButtonPadding: const EdgeInsets.only(left: 12),
         dropdownIconPosition: IconPosition.trailing,
         showCountryFlag: true,

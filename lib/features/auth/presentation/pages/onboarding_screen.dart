@@ -16,32 +16,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // All pages use consistent primary red gradient for brand consistency
+  // Spec: Slide 1 Découvrez des boutiques, 2 Commandez facilement, 3 Livraison rapide
   final List<OnboardingData> _pages = [
     OnboardingData(
-      title: 'Découvrez les\nMeilleures Boutiques',
+      title: 'Découvrez\ndes boutiques',
       subtitle:
           'Explorez des centaines de boutiques locales et trouvez tout ce dont vous avez besoin.',
-      // PLACEHOLDER: Image showing a person browsing products on phone,
-      // colorful shopping bags, local Burundian marketplace vibe
       imagePlaceholder: 'browse_shops',
       icon: Icons.store_rounded,
     ),
     OnboardingData(
-      title: 'Commandez\nen Quelques Clics',
+      title: 'Commandez\nfacilement',
       subtitle:
-          'Ajoutez vos produits au panier et passez commande facilement depuis votre téléphone.',
-      // PLACEHOLDER: Image showing a hand tapping on phone screen,
-      // cart icon, products floating around
+          'Ajoutez vos produits au panier et passez commande en quelques clics depuis votre téléphone.',
       imagePlaceholder: 'easy_order',
       icon: Icons.shopping_cart_rounded,
     ),
     OnboardingData(
-      title: 'Livraison Rapide\nà Votre Porte',
+      title: 'Livraison\nrapide',
       subtitle:
           'Recevez vos commandes rapidement grâce à notre réseau de livreurs fiables.',
-      // PLACEHOLDER: Image showing a delivery person on motorcycle,
-      // package in hand, smiling, Bujumbura streets in background
       imagePlaceholder: 'fast_delivery',
       icon: Icons.delivery_dining_rounded,
     ),
@@ -162,7 +156,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       // Next/Get Started button - consistent primary gradient
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        width: _currentPage == _pages.length - 1 ? 180 : 56,
+                        width: _currentPage == _pages.length - 1 ? 220 : 56,
                         height: 56,
                         child: Material(
                           color: Colors.transparent,
@@ -183,30 +177,50 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ],
                               ),
                               child: Center(
-                                child: _currentPage == _pages.length - 1
-                                    ? Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Commencer',
-                                            style:
-                                                AppTextStyles.button.copyWith(
-                                              color: AppColors.white,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: _currentPage == _pages.length - 1
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'Commencer',
+                                              style: AppTextStyles.button
+                                                  .copyWith(
+                                                color: AppColors.white,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Icon(
-                                            Icons.arrow_forward_rounded,
-                                            color: AppColors.white,
-                                            size: 20,
-                                          ),
-                                        ],
-                                      )
-                                    : const Icon(
-                                        Icons.arrow_forward_rounded,
-                                        color: AppColors.white,
-                                      ),
+                                            const SizedBox(width: 8),
+                                            const Icon(
+                                              Icons.arrow_forward_rounded,
+                                              color: AppColors.white,
+                                              size: 20,
+                                            ),
+                                          ],
+                                        )
+                                      : Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'Suivant',
+                                              style: AppTextStyles.button
+                                                  .copyWith(
+                                                color: AppColors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(
+                                              Icons.arrow_forward_rounded,
+                                              color: AppColors.white,
+                                              size: 20,
+                                            ),
+                                          ],
+                                        ),
+                                ),
                               ),
                             ),
                           ),

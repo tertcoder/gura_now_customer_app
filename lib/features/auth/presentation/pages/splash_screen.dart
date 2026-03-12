@@ -19,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  bool _minDelayComplete = false;
 
   @override
   void initState() {
@@ -43,6 +44,11 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+
+    // Auto-navigate based on AuthBloc state after 2s delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _minDelayComplete = true);
+    });
   }
 
   @override
@@ -51,134 +57,153 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
+  void _navigateBasedOnAuth(BuildContext context, AuthState state) {
+    if (state.status == AuthStatus.authenticated) {
+      context.go('/home');
+    } else if (state.status == AuthStatus.unauthenticated ||
+        state.status == AuthStatus.error) {
+      context.go('/onboarding');
+    }
+  }
+
+  bool _didNavigateAfterDelay = false;
+
   @override
   Widget build(BuildContext context) => BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
-            context.go('/home');
-          } else if (state.status == AuthStatus.unauthenticated ||
-              state.status == AuthStatus.error) {
-            context.go('/onboarding');
-          }
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.background,
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF0A0A0A),
-                  Color(0xFF121212),
-                  Color(0xFF0A0A0A),
+        listenWhen: (_, __) => _minDelayComplete,
+        listener: (context, state) => _navigateBasedOnAuth(context, state),
+        child: Builder(
+          builder: (context) {
+            if (_minDelayComplete && !_didNavigateAfterDelay) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                _didNavigateAfterDelay = true;
+                _navigateBasedOnAuth(context, context.read<AuthBloc>().state);
+              });
+            }
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              body: _buildSplashBody(context),
+            );
+          },
+        ),
+      );
+
+  Widget _buildSplashBody(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF0A0A0A),
+            Color(0xFF121212),
+            Color(0xFF0A0A0A),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Subtle gradient orbs in background
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.guraRed.withValues(alpha: 0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.guraOrange.withValues(alpha: 0.1),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Main content
+          Center(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) => FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
+                      SvgPicture.asset(
+                        AppAssets.splashLogo,
+                        width: 220,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 48),
+
+                      // Loading indicator
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.guraRed.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Bottom tagline
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                children: [
+                  Text(
+                    'Achetez. Livrez. Profitez.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
-            child: Stack(
-              children: [
-                // Subtle gradient orbs in background
-                Positioned(
-                  top: -100,
-                  right: -100,
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppColors.guraRed.withValues(alpha: 0.15),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -50,
-                  left: -50,
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppColors.guraOrange.withValues(alpha: 0.1),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Main content
-                Center(
-                  child: AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, child) => FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Logo
-                            SvgPicture.asset(
-                              AppAssets.splashLogo,
-                              width: 220,
-                              fit: BoxFit.contain,
-                            ),
-                            const SizedBox(height: 48),
-
-                            // Loading indicator
-                            SizedBox(
-                              width: 32,
-                              height: 32,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.guraRed.withValues(alpha: 0.8),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Bottom tagline
-                Positioned(
-                  bottom: 60,
-                  left: 0,
-                  right: 0,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        Text(
-                          'Achetez. Livrez. Profitez.',
-                          style: TextStyle(
-                            color:
-                                AppColors.textSecondary.withValues(alpha: 0.7),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
-      );
+        ],
+      ),
+    );
+  }
 }

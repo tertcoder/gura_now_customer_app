@@ -40,6 +40,7 @@ class StatusBadge extends StatelessWidget {
         return 'Prêt';
       case 'shipped':
       case 'in_transit':
+      case 'en_cours':
         return 'En cours';
       case 'delivered':
         return 'Livré';

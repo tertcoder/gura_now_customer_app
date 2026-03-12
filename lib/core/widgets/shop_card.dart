@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../../features/shop/domain/entities/shop.dart';
 
 class ShopCard extends StatelessWidget {
@@ -19,7 +20,7 @@ class ShopCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderGray),
           ),
           clipBehavior: Clip.antiAlias,
@@ -32,17 +33,16 @@ class ShopCard extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   color: AppColors.surfaceContainer,
-                  child: shop.logoUrl != null
+                  child: shop.logoUrl != null && shop.logoUrl!.isNotEmpty
                       ? Image.network(
                           shop.logoUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholder(),
+                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
                         )
                       : _buildPlaceholder(),
                 ),
               ),
-              // Info
+              // Info: name (heading5), type badge, rating with star, delivery info
               Expanded(
                 flex: 2,
                 child: Padding(
@@ -50,64 +50,54 @@ class ShopCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Category Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          gradient: AppColors.gradientAccent,
+                          color: AppColors.primaryContainer,
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           shop.type.toUpperCase(),
-                          style: const TextStyle(
-                            color: AppColors.textOnAccent,
+                          style: AppTextStyles.badge.copyWith(
+                            color: AppColors.primary,
                             fontSize: 9,
-                            fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Shop Name
-                      Expanded(
-                        child: Text(
-                          shop.name,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      Text(
+                        shop.name,
+                        style: AppTextStyles.heading5,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      // Rating
+                      const Spacer(),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: AppColors.accentGold,
-                          ),
+                          const Icon(Icons.star_rounded, size: 14, color: AppColors.guraOrange),
                           const SizedBox(width: 4),
                           Text(
                             shop.rating.toStringAsFixed(1),
-                            style: const TextStyle(
+                            style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '(${shop.totalReviews})',
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                            ),
+                            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                          ),
+                          const Spacer(),
+                          Icon(Icons.delivery_dining_rounded, size: 12, color: AppColors.textTertiary),
+                          const SizedBox(width: 2),
+                          Text(
+                            shop.deliveryScope ?? 'Bujumbura',
+                            style: AppTextStyles.caption,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -121,17 +111,10 @@ class ShopCard extends StatelessWidget {
       );
 
   Widget _buildPlaceholder() => Center(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.store,
-            size: 32,
-            color: AppColors.accent,
-          ),
+        child: Icon(
+          Icons.store_rounded,
+          size: 40,
+          color: AppColors.primary.withValues(alpha: 0.6),
         ),
       );
 }

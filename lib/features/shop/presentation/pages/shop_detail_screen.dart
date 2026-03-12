@@ -5,20 +5,21 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/product_card.dart';
+import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/shop.dart';
 import '../bloc/shop_bloc.dart';
 
-/// Mock products for now (until Product Module is fully spec'd).
-List<Product> _mockProducts(String shopId) {
+List<Product> _mockProducts(String shopId, String shopName) {
   return List.generate(
     10,
     (index) => Product(
-      id: 'prod_$index',
-      name: 'Produit Item $index',
-      description: 'Description du produit $index',
-      price: (index + 1) * 1000.0,
+      id: '${shopId}_prod_$index',
+      name: 'Produit ${index + 1}',
+      description: 'Description du produit.',
+      price: (index + 1) * 2500.0,
       shopId: shopId,
+      shopName: shopName,
     ),
   );
 }
@@ -46,8 +47,12 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
     if (widget.shopExtra == null) {
       context.read<ShopBloc>().add(ShopDetailRequested(widget.shopId));
     }
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) setState(() => _products = _mockProducts(widget.shopId));
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) {
+        final shop = widget.shopExtra;
+        final name = shop?.name ?? 'Boutique';
+        setState(() => _products = _mockProducts(widget.shopId, name));
+      }
     });
   }
 
@@ -65,140 +70,226 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
         if (shop == null) {
           if (state.detailStatus == ShopDetailStatus.failure) {
             return Scaffold(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.background,
               appBar: AppBar(
+                backgroundColor: AppColors.background,
+                foregroundColor: AppColors.textPrimary,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back_rounded),
                   onPressed: () => context.pop(),
                 ),
               ),
-              body: Center(child: Text('Erreur: ${state.detailError}')),
+              body: Center(
+                child: Text(
+                  state.detailError ?? 'Erreur de chargement',
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                ),
+              ),
             );
           }
           return Scaffold(
-            backgroundColor: AppColors.white,
-            body: const Center(
-              child: CircularProgressIndicator(color: AppColors.black),
+            backgroundColor: AppColors.background,
+            body: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
             ),
           );
         }
         final products = _products ?? [];
-        return Scaffold(
-          backgroundColor: AppColors.white,
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 200,
-                floating: false,
-                pinned: true,
-                backgroundColor: AppColors.black,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: false,
-                  title: Text(
-                    shop.name,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  background: shop.logoUrl != null
-                      ? Image.network(
-                          shop.logoUrl!,
-                          fit: BoxFit.cover,
-                          color: Colors.black.withValues(alpha: 0.5),
-                          colorBlendMode: BlendMode.darken,
-                        )
-                      : Container(color: AppColors.darkGray),
-                ),
-                leading: IconButton(
-                  icon: const CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.arrow_back, color: Colors.black),
-                  ),
-                  onPressed: () => context.pop(),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+        return BlocBuilder<CartBloc, CartState>(
+          builder: (context, cartState) {
+            final cartCount = cartState.itemCount;
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              body: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 220,
+                    pinned: true,
+                    backgroundColor: AppColors.surface,
+                    foregroundColor: AppColors.textPrimary,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: CircleAvatar(
+                        backgroundColor: AppColors.surfaceContainer,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded),
+                          onPressed: () => context.pop(),
+                        ),
+                      ),
+                    ),
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Stack(
+                        fit: StackFit.expand,
                         children: [
-                          const Icon(Icons.location_on,
-                              size: 16, color: AppColors.darkGray),
-                          const SizedBox(width: 4),
-                          Text(shop.deliveryScope ?? 'Local',
-                              style: AppTextStyles.bodySmall),
-                          const Spacer(),
-                          const Icon(Icons.star,
-                              size: 16, color: AppColors.black),
-                          Text(
-                            '${shop.rating} (${shop.totalReviews})',
-                            style: AppTextStyles.bodySmall,
+                          if (shop.logoUrl != null && shop.logoUrl!.isNotEmpty)
+                            Image.network(
+                              shop.logoUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: AppColors.surfaceLight,
+                                child: const Icon(Icons.store_rounded, size: 64, color: AppColors.textTertiary),
+                              ),
+                            )
+                          else
+                            Container(
+                              color: AppColors.surfaceLight,
+                              child: const Icon(Icons.store_rounded, size: 64, color: AppColors.textTertiary),
+                            ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  AppColors.background.withValues(alpha: 0.85),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        shop.description ?? 'Aucune description',
-                        style: AppTextStyles.bodyMedium,
-                      ),
-                      const SizedBox(height: 24),
-                      Text('Produits', style: AppTextStyles.heading2),
-                      const Divider(
-                        color: AppColors.black,
-                        thickness: 2,
-                        endIndent: 300,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-              if (products.isEmpty)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(color: AppColors.black),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.7,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final product = products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Détail produit à venir (Module Cart)',
-                                ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Transform.translate(
+                      offset: const Offset(0, -28),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundColor: AppColors.surface,
+                              child: shop.logoUrl != null && shop.logoUrl!.isNotEmpty
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        shop.logoUrl!,
+                                        width: 64,
+                                        height: 64,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => const Icon(Icons.store_rounded, color: AppColors.primary),
+                                      ),
+                                    )
+                                  : const Icon(Icons.store_rounded, color: AppColors.primary, size: 32),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(shop.name, style: AppTextStyles.heading2),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryContainer,
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          shop.type,
+                                          style: AppTextStyles.caption.copyWith(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Icon(Icons.star_rounded, size: 16, color: AppColors.guraOrange),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${shop.rating.toStringAsFixed(1)} (${shop.totalReviews} avis)',
+                                        style: AppTextStyles.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.delivery_dining_rounded, size: 14, color: AppColors.textSecondary),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        shop.deliveryScope ?? 'Bujumbura',
+                                        style: AppTextStyles.caption,
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                      child: Text(
+                        shop.description ?? 'Aucune description.',
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('Produits', style: AppTextStyles.heading4),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  if (products.isEmpty)
+                    const SliverFillRemaining(
+                      child: Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.72,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final product = products[index];
+                            return ProductCard(
+                              product: product,
+                              onTap: () => context.push('/product/${product.id}'),
                             );
                           },
-                        );
-                      },
-                      childCount: products.length,
+                          childCount: products.length,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              const SliverPadding(padding: EdgeInsets.only(bottom: 50)),
-            ],
-          ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ),
+              floatingActionButton: cartCount > 0
+                  ? FloatingActionButton.extended(
+                      onPressed: () => context.push('/cart'),
+                      backgroundColor: AppColors.primary,
+                      icon: Badge(
+                        label: Text('$cartCount', style: AppTextStyles.badge.copyWith(fontSize: 10)),
+                        child: const Icon(Icons.shopping_cart_rounded),
+                      ),
+                      label: const Text('Voir le panier'),
+                    )
+                  : null,
+            );
+          },
         );
       },
     );
   }
 }
+

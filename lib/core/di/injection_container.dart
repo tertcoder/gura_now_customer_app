@@ -1,9 +1,12 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../network/dio_client.dart';
-import '../network/api_client.dart';
 import '../storage/secure_storage.dart' show SecureStorageService;
+import '../mock/mock_auth_datasource.dart';
+import '../mock/mock_order_datasource.dart';
+import '../mock/mock_shop_datasource.dart';
+import '../mock/mock_notification_datasource.dart';
+import '../mock/mock_payment_datasource.dart';
 
 // Import features
 import '../../features/auth/auth.dart';
@@ -28,8 +31,6 @@ Future<void> init() async {
   _initCart();
   _initOrders();
   _initShop();
-  _initDriver();
-  _initAdmin();
   _initNotifications();
   _initPayment();
 }
@@ -41,45 +42,35 @@ Future<void> _initCore() async {
 
   // Storage
   sl.registerLazySingleton<SecureStorageService>(
-    SecureStorageService.new,
-  );
-
-  // Network - DioClient (existing implementation)
-  sl.registerLazySingleton<DioClient>(
-    () => DioClient(sl<SecureStorageService>()),
-  );
-
-  // Network - ApiClient (Dio-based Clean Architecture wrapper)
-  sl.registerLazySingleton<ApiClient>(
-    () => ApiClient(sl<DioClient>()),
+    () => SecureStorageService(),
   );
 }
 
 void _initAuth() {
   // ─────────────────────────────────────────────────────────────────
-  // Use Cases (Singleton)
+  // Data Sources (Mock only - no API) — register first so repo can resolve
   // ─────────────────────────────────────────────────────────────────
-  sl.registerLazySingleton(() => LoginUseCase(sl()));
-  sl.registerLazySingleton(() => RegisterUseCase(sl()));
-  sl.registerLazySingleton(() => LogoutUseCase(sl()));
-  sl.registerLazySingleton(() => GetMeUseCase(sl()));
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => MockAuthRemoteDataSource(),
+  );
 
   // ─────────────────────────────────────────────────────────────────
   // Repository (Singleton, registered with interface type)
   // ─────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
-      sl(),
+      sl<AuthRemoteDataSource>(),
       sl<SecureStorageService>(),
     ),
   );
 
   // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
+  // Use Cases (Singleton)
   // ─────────────────────────────────────────────────────────────────
-  sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(sl()),
-  );
+  sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => RegisterUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => GetMeUseCase(sl<AuthRepository>()));
 
   // ─────────────────────────────────────────────────────────────────
   // BLoC (Factory - one per tree, created at app root)
@@ -100,7 +91,7 @@ void _initCart() {
   // BLoC (Factory)
   // ─────────────────────────────────────────────────────────────────
   sl.registerFactory<CartBloc>(
-    () => CartBloc(sl()),
+    () => CartBloc(sl<SharedPreferences>()),
   );
 }
 
@@ -122,10 +113,10 @@ void _initOrders() {
   );
 
   // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
+  // Data Sources (Mock only - no API)
   // ─────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<OrderRemoteDataSource>(
-    () => OrderRemoteDataSourceImpl(sl()),
+    () => MockOrderRemoteDataSource(),
   );
 
   // ─────────────────────────────────────────────────────────────────
@@ -157,10 +148,10 @@ void _initShop() {
   );
 
   // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
+  // Data Sources (Mock only - no API)
   // ─────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<ShopRemoteDataSource>(
-    () => ShopRemoteDataSourceImpl(sl()),
+    () => MockShopRemoteDataSource(),
   );
 
   // ─────────────────────────────────────────────────────────────────
@@ -172,65 +163,6 @@ void _initShop() {
       getShopDetailUseCase: sl(),
     ),
   );
-}
-
-void _initDriver() {
-  // ─────────────────────────────────────────────────────────────────
-  // Use Cases (Singleton)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton(() => GetAvailableDeliveriesUseCase(sl()));
-  // sl.registerLazySingleton(() => AcceptDeliveryUseCase(sl()));
-  // sl.registerLazySingleton(() => GetDriverStatsUseCase(sl()));
-
-  // ─────────────────────────────────────────────────────────────────
-  // Repository (Singleton, registered with interface type)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<DeliveryRepository>(
-  //   () => DeliveryRepositoryImpl(sl()),
-  // );
-
-  // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<DeliveryRemoteDataSource>(
-  //   () => DeliveryRemoteDataSourceImpl(sl()),
-  // );
-
-  // ─────────────────────────────────────────────────────────────────
-  // BLoC (Factory)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerFactory<DriverBloc>(
-  // () => DriverBloc(sl()),
-  // );
-}
-
-void _initAdmin() {
-  // ─────────────────────────────────────────────────────────────────
-  // Use Cases (Singleton)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton(() => GetStatsUseCase(sl()));
-  // sl.registerLazySingleton(() => GetUsersUseCase(sl()));
-
-  // ─────────────────────────────────────────────────────────────────
-  // Repository (Singleton, registered with interface type)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<AdminRepository>(
-  //   () => AdminRepositoryImpl(sl()),
-  // );
-
-  // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<AdminRemoteDataSource>(
-  //   () => AdminRemoteDataSource(sl()),
-  // );
-
-  // ─────────────────────────────────────────────────────────────────
-  // BLoC (Factory)
-  // ─────────────────────────────────────────────────────────────────
-  // sl.registerFactory<AdminBloc>(
-  //   () => AdminBloc(sl()),
-  // );
 }
 
 void _initNotifications() {
@@ -249,10 +181,10 @@ void _initNotifications() {
   );
 
   // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
+  // Data Sources (Mock only - no API)
   // ─────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<NotificationRemoteDataSource>(
-    () => NotificationRemoteDataSourceImpl(sl()),
+    () => MockNotificationRemoteDataSource(),
   );
 
   // ─────────────────────────────────────────────────────────────────
@@ -278,10 +210,10 @@ void _initPayment() {
   );
 
   // ─────────────────────────────────────────────────────────────────
-  // Data Sources (Singleton, registered with interface type)
+  // Data Sources (Mock only - no API)
   // ─────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<PaymentRemoteDataSource>(
-    () => PaymentRemoteDataSourceImpl(sl()),
+    () => MockPaymentRemoteDataSource(),
   );
 
   // ─────────────────────────────────────────────────────────────────

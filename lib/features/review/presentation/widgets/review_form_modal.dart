@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import 'star_rating_widget.dart';
 
-/// Modal dialog for submitting a review.
+/// Modal dialog for submitting a review (dark theme).
 class ReviewFormModal extends StatefulWidget {
   const ReviewFormModal({
     super.key,
@@ -18,7 +19,7 @@ class ReviewFormModal extends StatefulWidget {
   final String? shopId;
   final String? driverId;
   final String targetName;
-  final String reviewType; // 'shop' or 'driver'
+  final String reviewType;
   final Function(int rating, String? comment)? onSubmit;
 
   @override
@@ -39,45 +40,42 @@ class _ReviewFormModalState extends State<ReviewFormModal> {
   Future<void> _submit() async {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez donner une note'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text('Veuillez donner une note'),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
     }
-
     setState(() => _isSubmitting = true);
-
     try {
-      await widget.onSubmit?.call(_rating, _commentController.text.trim());
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
+      await widget.onSubmit?.call(_rating, _commentController.text.trim().isEmpty ? null : _commentController.text.trim());
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: BorderSide(color: AppColors.borderGray)),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -85,101 +83,92 @@ class _ReviewFormModalState extends State<ReviewFormModal> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Handle bar
                 Container(
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppColors.borderGray,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Title
                 Text(
                   'Évaluer ${widget.targetName}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.heading4,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   widget.reviewType == 'shop'
                       ? 'Comment était votre expérience d\'achat?'
                       : 'Comment était la livraison?',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                  ),
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-
-                // Star Rating
                 StarRatingWidget(
                   rating: _rating,
                   size: 48,
-                  onRatingChanged: (rating) {
-                    setState(() => _rating = rating);
-                  },
+                  onRatingChanged: (rating) => setState(() => _rating = rating),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _getRatingText(_rating),
-                  style: TextStyle(
-                    color: _rating > 0 ? Colors.amber[700] : Colors.grey,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: _rating > 0 ? AppColors.primary : AppColors.textTertiary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Comment Field
                 TextField(
                   controller: _commentController,
                   maxLines: 4,
                   maxLength: 500,
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Partagez votre expérience (optionnel)...',
+                    hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textDisabled),
+                    filled: true,
+                    fillColor: AppColors.surfaceContainer,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.borderGray),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.borderGray),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: AppColors.black, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Submit Button
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.black,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textOnPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
                     child: _isSubmitting
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: 24,
+                            width: 24,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnPrimary),
                             ),
                           )
-                        : const Text(
-                            'Envoyer l\'avis',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        : Text(
+                            'Envoyer',
+                            style: AppTextStyles.buttonLarge.copyWith(color: AppColors.textOnPrimary),
                           ),
                   ),
                 ),
@@ -192,22 +181,21 @@ class _ReviewFormModalState extends State<ReviewFormModal> {
   String _getRatingText(int rating) {
     switch (rating) {
       case 1:
-        return 'Très mauvais 😞';
+        return 'Très mauvais';
       case 2:
-        return 'Mauvais 😕';
+        return 'Mauvais';
       case 3:
-        return 'Correct 😐';
+        return 'Correct';
       case 4:
-        return 'Bien 🙂';
+        return 'Bien';
       case 5:
-        return 'Excellent! 🤩';
+        return 'Excellent!';
       default:
         return 'Touchez les étoiles pour noter';
     }
   }
 }
 
-/// Show the review form as a modal bottom sheet.
 Future<bool?> showReviewFormModal({
   required BuildContext context,
   required String targetName,
@@ -220,6 +208,7 @@ Future<bool?> showReviewFormModal({
     showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
